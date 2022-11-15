@@ -37,6 +37,12 @@ class ZMQLogger:
             if socks:
                 if socks.get(self.socket) == zmq.POLLIN:
                     message= self.socket.recv_multipart(zmq.NOBLOCK)#.decode("utf8").strip()
+                    level = message[0].decode("utf8").strip()
+                    record_str = message[1].decode("utf8").strip()
+                    record = json.loads(record_str)
+                    record["message"]=record["msg"]
+                    logger.log(level,message)
+
 
                     print("got message ",message )
             else:
