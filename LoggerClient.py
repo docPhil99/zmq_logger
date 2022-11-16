@@ -5,7 +5,8 @@ import time
 import pickle
 import os
 
-class LogSocketHandler:
+
+class _LogSocketHandler:
     def __init__(self, host="tcp://127.0.0.1", port=9999, machine_name=None):
         """
             Handler to send pickled log messages over the network. Beware the dangers of pickle on
@@ -28,8 +29,12 @@ class LogSocketHandler:
         self.socket.send(data)
 
 
-logger.configure(handlers=[{"sink": LogSocketHandler('tcp://localhost', 9999)}])
+def setup(host="tcp://127.0.0.1", port=9999, machine_name=None):
+    logger.configure(handlers=[{"sink": _LogSocketHandler(host=host, port=port, machine_name=machine_name)}])
 
-for p in range(20):
-    logger.info(f"Logging from client {p}")
-    time.sleep(1)
+
+if __name__ == "__main__":
+    # simple text code
+    for p in range(20):
+        logger.info(f"Logging from client {p}")
+        time.sleep(1)

@@ -6,7 +6,7 @@ import threading
 import pickle
 
 class ZMQLogger:
-    def __init__(self, host="tcp://127.0.0.1",port=9999, logfile='log.txt'):
+    def __init__(self, host="tcp://*",port=9999, logfile='log.txt'):
         self.host= host
         self.port = port
         logger.configure(handlers=[{"sink": sys.stderr, "format":ZMQLogger._formatter}])
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     logger.info('Starting')
     zmlog = ZMQLogger()
     zmlog.start()
-    time.sleep(60)
+    time.sleep(600)
     logger.info('Stopping')
     zmlog.stop()
