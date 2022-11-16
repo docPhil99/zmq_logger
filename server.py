@@ -3,7 +3,7 @@ import sys
 import zmq
 from loguru import logger
 import threading
-import json
+import pickle
 
 class ZMQLogger:
     def __init__(self, host="tcp://127.0.0.1",port=9999, logfile='log.txt'):
@@ -26,36 +26,28 @@ class ZMQLogger:
     def _worker(self):
         self.socket = zmq.Context().socket(zmq.SUB)
         addr=f"{self.host}:{self.port}"
-        print(f'Addr {addr}')
+        logger.debug(f'Binding Addr: {addr}')
         self.socket.bind(addr)
         self.socket.subscribe("")
         poller = zmq.Poller()
         poller.register(self.socket, zmq.POLLIN)
         while self._run:
-            print('get message')
             socks = dict(poller.poll(1000))
             if socks:
                 if socks.get(self.socket) == zmq.POLLIN:
-                    message= self.socket.recv_multipart(zmq.NOBLOCK)#.decode("utf8").strip()
-                    level = message[0].decode("utf8").strip()
-                    record_str = message[1].decode("utf8").strip()
-                    record = json.loads(record_str)
-                    record["message"]=record["msg"]
-                    logger.log(level,message)
+                    pmessage = self.socket.recv(zmq.NOBLOCK)
+                    record= pickle.loads(pmessage)
+                    level, message = record["level"].no, record["message"]
+                    logger.patch(lambda record: record.update(record)).bind(host=record['extra']['host']).log(level, message)
 
-
-                    print("got message ",message )
             else:
-                print("error: message timeout")
-            # try:
-            #     _, message = self.socket.recv_multipart(flags=zmq.NOBLOCK)
-            #     print(f'Got {message}')
-            # except zmq.Again as e:
-            #     print('time out')
+                pass
+                #print("error: message timeout")
+
 
     @classmethod
     def _formatter(cls,record):
-        fmt = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>| <lvl>{level: <8}</lvl>| {name}:{function}:{line} {extra[host]} -  <lvl>{message}</lvl>\n"
+        fmt = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>| <lvl>{level: <8}</lvl>| {name}:{function}:{line} <blue>{extra[host]}</blue> -  <lvl>{message}</lvl>\n"
         fmt_local = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>| <lvl>{level: <8}</lvl>| {name}:{function}:{line}-  <lvl>{message}</lvl>\n"
         if 'host' in record["extra"]:
             return fmt
@@ -63,55 +55,15 @@ class ZMQLogger:
             return fmt_local
 
 
+if __name__ == "__main__":
+    """
+    Simple test example, start server for 60 seconds
+    """
+    import time
 
-
-
-#
-import time
-from zmq.log.handlers import PUBHandler
-#
-# socket = zmq.Context().socket(zmq.SUB)
-# socket.bind("tcp://127.0.0.1:12345")
-# socket.subscribe("")
-#
-# logger.configure(handlers=[{"sink": sys.stderr, "format": "{message}"}])
-#
-# while True:
-#     _, message = socket.recv_multipart()
-#     logger.info(message.decode("utf8").strip())
-
-zmlog = ZMQLogger()
-zmlog.start()
-
-class LogEncoder(json.JSONEncoder):
-    def default(self, obj):
-        try:
-            return obj.__dict__ ['records']
-        except:
-            return obj.__dict__
-
-
-class myPUBHandler(PUBHandler):
-    def format(self,record):
-        return LogEncoder().encode(record)
-
-
-socket = zmq.Context().socket(zmq.PUB)
-socket.connect("tcp://127.0.0.1:9999")
-handler = myPUBHandler(socket)
-logger.add(handler)
-
-for p in range(10):
-    logger.info(f"Logging from client {p}")
-    time.sleep(1)
-
-zmlog.stop()
-#socket = zmq.Context().socket(zmq.SUB)
-#socket.bind("tcp://127.0.0.1:12345")
-#socket.subscribe("")
-
-#logger.configure(handlers=[{"sink": sys.stderr, "format": "{message}"}])
-
-#while True:
-#    _, message = socket.recv_multipart()
-#    logger.info(message.decode("utf8").strip())
+    logger.info('Starting')
+    zmlog = ZMQLogger()
+    zmlog.start()
+    time.sleep(60)
+    logger.info('Stopping')
+    zmlog.stop()
