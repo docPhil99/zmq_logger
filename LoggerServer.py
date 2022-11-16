@@ -9,7 +9,7 @@ class ZMQLogger:
     def __init__(self, host="tcp://*",port=9999, logfile='log.txt'):
         self.host= host
         self.port = port
-        logger.configure(handlers=[{"sink": sys.stderr, "format":ZMQLogger._formatter}])
+
         self._run = False
         self._thread = None
 
@@ -46,7 +46,7 @@ class ZMQLogger:
 
 
     @classmethod
-    def _formatter(cls,record):
+    def formatter(cls,record):
         fmt = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>| <lvl>{level: <8}</lvl>| {name}:{function}:{line} <blue>{extra[host]}</blue> -  <lvl>{message}</lvl>\n"
         fmt_local = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>| <lvl>{level: <8}</lvl>| {name}:{function}:{line}-  <lvl>{message}</lvl>\n"
         if 'host' in record["extra"]:
@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
     logger.info('Starting')
     zmlog = ZMQLogger()
+    logger.configure(handlers=[{"sink": sys.stderr, "format": ZMQLogger.formatter}])
     zmlog.start()
     time.sleep(600)
     logger.info('Stopping')

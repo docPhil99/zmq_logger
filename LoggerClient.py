@@ -17,7 +17,9 @@ class _LogSocketHandler:
         the extra dict in loguru's message.
         """
         self.socket = zmq.Context().socket(zmq.PUB)
-        self.socket.connect(f"{host}:{port}")
+        addr= f"{host}:{port}"
+        print(f'Connected to {addr}')
+        self.socket.connect(addr)
         if not machine_name:
             machine_name = os.uname()[1]
         self.machine_name = machine_name
