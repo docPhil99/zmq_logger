@@ -4,7 +4,8 @@ from loguru import logger
 import time
 import pickle
 import os
-
+from LoggerServer import ZMQLogger
+import sys
 
 class _LogSocketHandler:
     def __init__(self, host="tcp://127.0.0.1", port=9999, machine_name=None):
@@ -32,10 +33,12 @@ class _LogSocketHandler:
 
 
 def setup(host="tcp://127.0.0.1", port=9999, machine_name=None):
-    logger.configure(handlers=[{"sink": _LogSocketHandler(host=host, port=port, machine_name=machine_name)}])
+    logger.configure(handlers=[{"sink": _LogSocketHandler(host=host, port=port, machine_name=machine_name)},
+                               {"sink": sys.stderr, "format": ZMQLogger.formatter}])
 
 
 if __name__ == "__main__":
+    setup()
     # simple text code
     for p in range(20):
         logger.info(f"Logging from client {p}")
