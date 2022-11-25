@@ -4,7 +4,7 @@ from loguru import logger
 import time
 import pickle
 import os
-from LoggerServer import ZMQLogger
+from utils.zmq_logger.LoggerServer import ZMQLogger
 import sys
 
 class _LogSocketHandler:
@@ -33,8 +33,8 @@ class _LogSocketHandler:
 
 
 def setup(host="tcp://127.0.0.1", port=9999, machine_name=None):
-    logger.configure(handlers=[{"sink": _LogSocketHandler(host=host, port=port, machine_name=machine_name)},
-                               {"sink": sys.stderr, "format": ZMQLogger.formatter}])
+    logger.configure(handlers=[{"sink": _LogSocketHandler(host=host, port=port, machine_name=machine_name),"enqueue": True},
+                               {"sink": sys.stderr, "format": ZMQLogger.formatter,"enqueue": True}])
 
 
 if __name__ == "__main__":
