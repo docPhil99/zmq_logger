@@ -5,6 +5,8 @@ from loguru import logger
 import threading
 import pickle
 
+# make sure the port is open, on ubunutu 
+
 class ZMQLogger:
     def __init__(self, host="tcp://*",port=9999, logfile='log.txt'):
         self.host= host
