@@ -5,10 +5,10 @@ from loguru import logger
 import threading
 import pickle
 
-# make sure the port is open, on ubunutu 
+# make sure the port is open,
 
 class ZMQLogger:
-    def __init__(self, host="tcp://*",port=9999, logfile='log.txt'):
+    def __init__(self, host="tcp://*", port=9999):
         self.host= host
         self.port = port
 
@@ -27,7 +27,7 @@ class ZMQLogger:
 
     def _worker(self):
         self.socket = zmq.Context().socket(zmq.SUB)
-        addr=f"{self.host}:{self.port}"
+        addr = f"{self.host}:{self.port}"
         logger.debug(f'Binding Addr: {addr}')
         self.socket.bind(addr)
         self.socket.subscribe("")
@@ -38,7 +38,7 @@ class ZMQLogger:
             if socks:
                 if socks.get(self.socket) == zmq.POLLIN:
                     pmessage = self.socket.recv(zmq.NOBLOCK)
-                    record= pickle.loads(pmessage)
+                    record = pickle.loads(pmessage)
                     level, message = record["level"].no, record["message"]
                     logger.patch(lambda record: record.update(record)).bind(host=record['extra']['host']).log(level, message)
 
@@ -57,16 +57,3 @@ class ZMQLogger:
             return fmt_local
 
 
-if __name__ == "__main__":
-    """
-    Simple test example, start server for 60 seconds
-    """
-    import time
-
-    logger.info('Starting')
-    zmlog = ZMQLogger()
-    logger.configure(handlers=[{"sink": sys.stderr, "format": ZMQLogger.formatter}])
-    zmlog.start()
-    time.sleep(600)
-    logger.info('Stopping')
-    zmlog.stop()
