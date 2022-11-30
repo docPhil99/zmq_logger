@@ -57,3 +57,9 @@ if __name__ == "__main__":
         logger.info(f"Logging from client {p}")
         time.sleep(1)
 ```
+
+# Install
+
+Git clone the repo.
+`python3 -m build`
+`pip install .` or `pip install -e .` for the development version.
