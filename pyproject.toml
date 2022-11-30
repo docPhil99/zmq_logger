@@ -8,7 +8,7 @@ version = "0.0.1"
 authors = [
   { name="Phil Birch", email="dr.phil.birch@gmail.com" },
 ]
-dependencies = ["loguru", "pyzmq"]
+dependencies = ["loguru", "pyzmq","securepickle"]
 description = "A small network logger and client that uses loguru and zmq"
 readme = "README.md"
 requires-python = ">=3.7"

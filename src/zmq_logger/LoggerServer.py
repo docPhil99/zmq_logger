@@ -1,16 +1,15 @@
-# server.py
-import sys
 import zmq
 from loguru import logger
 import threading
-import pickle
 
+import securepickle as pickle
 # make sure the port is open,
 
 class ZMQLogger:
-    def __init__(self, host="tcp://*", port=9999):
-        self.host= host
+    def __init__(self, host="tcp://*", port=9999,  hash=b"change me to something else"):
+        self.host = host
         self.port = port
+        pickle.set_key(hash)
 
         self._run = False
         self._thread = None
@@ -38,13 +37,20 @@ class ZMQLogger:
             if socks:
                 if socks.get(self.socket) == zmq.POLLIN:
                     pmessage = self.socket.recv(zmq.NOBLOCK)
-                    record = pickle.loads(pmessage)
+                    try:
+                        record = pickle.loads(pmessage)
+                    except pickle.InvalidSignatureError:
+                        logger.warning("Invalid signature in log data")
+                        continue
+                    except:
+                        logger.exception("Cannot recover message")
+                        continue
                     level, message = record["level"].no, record["message"]
                     logger.patch(lambda record: record.update(record)).bind(host=record['extra']['host']).log(level, message)
 
             else:
                 pass
-                #print("error: message timeout")
+                # message timeout
 
 
     @classmethod
